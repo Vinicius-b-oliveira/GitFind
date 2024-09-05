@@ -1,12 +1,14 @@
 import { UserRoundSearch } from 'lucide-react';
 import { UsernameInput } from '../../components/username-input';
 import { useState } from 'react';
-import './styled.css';
 import { api } from '../../lib/axios';
+import './styled.css';
+import { useNavigate } from 'react-router-dom';
 
 export function Home() {
+    const navigate = useNavigate();
+
     const [username, setUsername] = useState("");
-    const [userData, setUserData] = useState({});
     const [error, setError] = useState("")
 
     function handleUsername(value) {
@@ -15,18 +17,23 @@ export function Home() {
 
     async function handleSearch(event) {
         event.preventDefault();
-
-        if(!username) {
-            alert("Insira um nome de usuário!");
+    
+        if (!username) {
+            return alert("Insira um nome de usuário!");
         }
-
+    
         try {
             const res = await api.get(`/${username}`);
-            setUserData(res.data);
-            setError("");
+            const data = res.data;
+    
+            if (data.login) {
+                setError("");
+                navigate(`/user/:${username}`, { state: { userData: res.data } })
+            } else {
+                setError("Usuário inválido!");
+            }
         } catch (err) {
             setError("Erro ao buscar o usuário!");
-            return;
         }
     }
 

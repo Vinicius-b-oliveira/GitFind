@@ -1,0 +1,38 @@
+.input-container {
+    position: relative;
+    width: 350px;
+    margin-bottom: 30px;
+
+    & .username {
+        padding: 15px 45px 15px 15px; /* Espaço extra para o ícone */
+        width: 100%;
+        border: 2px solid #0366d6;
+        border-radius: 25px;
+        font-size: 18px;
+        background-color: #222;
+        color: #dcdcdc;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        
+        &:focus {
+            outline: none;
+            border-color: #1f78ff;
+            box-shadow: 0 0 10px rgba(31, 120, 255, 0.5);  
+        }
+    }
+
+    & .icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #0366d6; /* Cor do ícone */
+        font-size: 20px;
+    }
+
+    & .error {
+        color: #931010  ;
+        position: absolute;
+        left: 20px;
+    }
+}

@@ -28,8 +28,9 @@ export function Home() {
     
             if (data.login) {
                 setError("");
-                navigate(`/user/:${username}`, { state: { userData: res.data } })
+                navigate(`/user/${username}`, { state: { userData: res.data } })
             } else {
+                console.log(data)
                 setError("Usuário inválido!");
             }
         } catch (err) {

@@ -15,7 +15,7 @@ export function UsernameInput({value, onValueChange, error}) {
                 <Search className="icon" />
 
                 {error && (
-                    <p className='error'>{error}</p>
+                    <p className='error'>Ocorreu um erro!</p>
                  )}
             </div>
     )

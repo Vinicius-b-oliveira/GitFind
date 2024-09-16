@@ -10,7 +10,7 @@ export function App() {
             element: <Home />
         },
         {
-            path: "/user/:userName",
+            path: "/user/:username",
             element: <UserDetails />
         },
     ])

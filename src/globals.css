@@ -16,23 +16,22 @@ a {
     text-decoration: none;
 }
 
-/* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
     width: 12px;
-    height: 8px; /* Largura da barra de rolagem horizontal */
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background-color: #333; /* Cor de fundo da barra */
+    background-color: #333; 
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: #1f78ff; /* Cor da parte rolável da barra */
+    background-color: #1f78ff; 
     border-radius: 10px;
-    border: 2px solid #222; /* Bordas da barra de rolagem */
+    border: 2px solid #222; /
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: #145bb5; /* Cor quando o usuário passa o mouse */
+    background-color: #145bb5; 
 }

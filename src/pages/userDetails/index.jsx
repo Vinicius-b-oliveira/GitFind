@@ -3,6 +3,7 @@ import { useLocation, useParams } from "react-router-dom";
 import './styled.css'
 import { api } from "../../lib/axios";
 import { ErrorModal } from "../../components/error-modal";
+import { Link } from "react-router-dom";
 
 
 export function UserDetails() {
@@ -159,6 +160,10 @@ export function UserDetails() {
                     </div>
                 </div>
             </div>
+            
+            <Link to="/">
+                <button class="back-button">Back to Home</button>
+            </Link>
 
             {isErrorModalOpen && (
                 <ErrorModal

@@ -7,7 +7,7 @@ import { ErrorModal } from "../../components/error-modal";
 
 export function UserDetails() {
     const location = useLocation();
-    const {username} = useParams();
+    const { username } = useParams();
 
     const [userData, setUserData] = useState({});
     const [repos, setRepos] = useState([]);
@@ -28,7 +28,7 @@ export function UserDetails() {
         async function fetchUserData(page) {
             if (!userData.login && location.state?.userData) {
                 setUserData(location.state.userData);
-                
+
                 if (repos.length === 0) {
                     try {
                         const response = await api.get(`/${username}/repos`, {
@@ -70,7 +70,6 @@ export function UserDetails() {
 
             setRepos(prevRepos => [...prevRepos, ...response.data]);
             setCurrentPage(page + 1);
-            console.log(currentPage);
         } catch (err) {
             if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
                 const resetTime = err.response.headers['x-ratelimit-reset'];
@@ -98,17 +97,17 @@ export function UserDetails() {
                                 <div className="followers">
                                     <strong>
                                         {userData.followers > 1000 ? (
-                                            ((userData.followers / 1000).toFixed(0) + 'k').toString() 
+                                            ((userData.followers / 1000).toFixed(0) + 'k').toString()
                                         ) : (
                                             userData.followers
                                         )}
-                                        </strong>
+                                    </strong>
                                     <span>Followers</span>
                                 </div>
                                 <div className="following">
                                     <strong>
                                         {userData.following > 1000 ? (
-                                            ((userData.following / 1000).toFixed(0) + 'k').toString() 
+                                            ((userData.following / 1000).toFixed(0) + 'k').toString()
                                         ) : (
                                             userData.following
                                         )}
@@ -121,24 +120,25 @@ export function UserDetails() {
 
                     <div className="repositories">
                         <h3>Repositories</h3>
-
-                        {repos.length > 0 ? (
-                            repos.map((repo, index) => {
-                                return (
-                                    <li key={index}>
-                                        <a href={repo.html_url}>{repo.name}</a>
-                                        <span>{repo.language ?? 'Sem linguagem principal'}</span>
-                                        <div className="repo-info">
-                                            <span>Forks: {repo.forks_count}</span>
-                                            <span>Stars: {repo.stargazers_count}</span>
-                                            <span>Watchers: {repo.watchers_count}</span>
-                                        </div>
-                                    </li>
-                                );
-                            })
-                        ) : (
-                            <p className="error-message">Nenhum repositório encontrado</p>
-                        )}
+                        <ul>
+                            {repos.length > 0 ? (
+                                repos.map((repo, index) => {
+                                    return (
+                                        <li key={index}>
+                                            <a href={repo.html_url}>{repo.name}</a>
+                                            <span>{repo.language ?? 'Sem linguagem principal'}</span>
+                                            <div className="repo-info">
+                                                <span>Forks: {repo.forks_count}</span>
+                                                <span>Stars: {repo.stargazers_count}</span>
+                                                <span>Watchers: {repo.watchers_count}</span>
+                                            </div>
+                                        </li>
+                                    );
+                                })
+                            ) : (
+                                <p className="error-message">Nenhum repositório encontrado</p>
+                            )}
+                        </ul>
 
                         <button onClick={() => loadMoreRepos(currentPage)} className="load-more">Load More</button>
                     </div>
@@ -161,8 +161,8 @@ export function UserDetails() {
             </div>
 
             {isErrorModalOpen && (
-                <ErrorModal 
-                    errorDescription={error} 
+                <ErrorModal
+                    errorDescription={error}
                     closeModal={closeErrorModal}
                 />
             )}

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import './styled.css'
 import { api } from "../../lib/axios";
 import { ErrorModal } from "../../components/error-modal";
 import { Link } from "react-router-dom";
+import './styled.css'
 
 
 export function UserDetails() {
@@ -12,6 +12,7 @@ export function UserDetails() {
 
     const [userData, setUserData] = useState({});
     const [repos, setRepos] = useState([]);
+    const [events, setEvents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
 
     const [error, setError] = useState("");
@@ -32,15 +33,37 @@ export function UserDetails() {
 
                 if (repos.length === 0) {
                     try {
-                        const response = await api.get(`/${username}/repos`, {
+                        const responseFromRepos = await api.get(`/${username}/repos`, {
                             params: {
                                 per_page: 2,
                                 page: page
                             }
                         });
 
-                        setRepos(prevRepos => [...prevRepos, ...response.data]);
-                        setCurrentPage(prevPage => prevPage + 1)
+                        const responseFromEvents = await api.get(`/${username}/events`, {
+                            params: {
+                                per_page: 4,
+                                page: page
+                            }
+                        });
+
+                        const dataFromEvents = responseFromEvents.data;
+
+                        const filteredData = dataFromEvents.map(event => {
+                            const hasCommits = event.payload && event.payload.commits && event.payload.commits.length > 0;
+                        
+                            return {
+                                type: event.type,
+                                repoName: event.repo?.name || "Nome de repositório indisponível",
+                                message: hasCommits ? event.payload.commits[0].message : "Sem mensagem"
+                            };
+                        });
+
+                        setRepos([...responseFromRepos.data]);
+                        setEvents([...filteredData]);
+                        console.log(filteredData)
+
+                        setCurrentPage(prevPage => prevPage + 1);
                     } catch (err) {
                         if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
                             const resetTime = err.response.headers['x-ratelimit-reset'];
@@ -147,14 +170,18 @@ export function UserDetails() {
                     <div className="events">
                         <h3>Recent Events</h3>
                         <ul>
-                            <li>
-                                <span>Pushed to master</span> on <a href="#">Hello-World</a>
-                                <span className="date">2 days ago</span>
-                            </li>
-                            <li>
-                                <span>Created new issue</span> on <a href="#">Spoon-Knife</a>
-                                <span className="date">1 week ago</span>
-                            </li>
+                            {events.length > 0 ? (
+                                events.map(event => {
+                                    return(
+                                        <li>
+                                            <span>{event.message ?? 'sem commit'}</span> on <a href="#">{event.repoName}</a>
+                                            <span className="date">2 days ago</span>
+                                        </li>
+                                    )
+                                })
+                            ) : (
+                                <li>Nenhum evento encontrado</li>
+                            )}
                         </ul>
                         <button className="load-more">Load More</button>
                     </div>
@@ -162,7 +189,7 @@ export function UserDetails() {
             </div>
             
             <Link to="/">
-                <button class="back-button">Back to Home</button>
+                <button className="back-button">Back to Home</button>
             </Link>
 
             {isErrorModalOpen && (

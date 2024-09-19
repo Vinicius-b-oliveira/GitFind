@@ -4,6 +4,7 @@ import { api } from "../../lib/axios";
 import { ErrorModal } from "../../components/error-modal";
 import { Link } from "react-router-dom";
 import './styled.css'
+import { formatDistanceToNow } from "date-fns";
 
 
 export function UserDetails() {
@@ -13,7 +14,9 @@ export function UserDetails() {
     const [userData, setUserData] = useState({});
     const [repos, setRepos] = useState([]);
     const [events, setEvents] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [reposPage, setReposPage] = useState(1);
+    const [eventsPage, setEventsPage] = useState(1);
+
 
     const [error, setError] = useState("");
     const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -26,50 +29,60 @@ export function UserDetails() {
         setIsErrorModalOpen(false);
     }
 
+    async function fetchRepos() {
+        const response = await api.get(`/${username}/repos`, {
+            params: {per_page: 2, page: reposPage}
+        });
+
+        setReposPage(prevPage => prevPage + 1);
+
+        return response.data;
+    }
+
+    async function fetchEvents() {
+        const response = await api.get(`/${username}/events`, {
+            params: {per_page: 4, page: eventsPage}
+        });
+
+        const dataFromEvents = response.data;
+
+        const filteredData = dataFromEvents.map(event => {
+            const hasCommits = event.payload && event.payload.commits && event.payload.commits.length > 0;
+        
+            return {
+                type: event.type,
+                repoName: event.repo?.name || "Nome de repositório indisponível",
+                message: hasCommits ? event.payload.commits[0].message : "Sem mensagem",
+                createdAt: formatDistanceToNow(new Date(event.created_at), { addSuffix: true })
+            };
+        });
+
+        setEventsPage(prevPage => prevPage + 1);
+
+        return filteredData;
+    }
+
     useEffect(() => {
-        async function fetchUserData(page) {
+        async function fetchUserData() {
             if (!userData.login && location.state?.userData) {
                 setUserData(location.state.userData);
 
-                if (repos.length === 0) {
+                if (repos.length === 0 || events.length === 0) {
                     try {
-                        const responseFromRepos = await api.get(`/${username}/repos`, {
-                            params: {
-                                per_page: 2,
-                                page: page
-                            }
-                        });
+                        const reposResponse = await fetchRepos();
+                        const eventsResponse = await fetchEvents();
 
-                        const responseFromEvents = await api.get(`/${username}/events`, {
-                            params: {
-                                per_page: 4,
-                                page: page
-                            }
-                        });
+                        setRepos([...reposResponse]);
+                        setEvents([...eventsResponse]);
 
-                        const dataFromEvents = responseFromEvents.data;
-
-                        const filteredData = dataFromEvents.map(event => {
-                            const hasCommits = event.payload && event.payload.commits && event.payload.commits.length > 0;
-                        
-                            return {
-                                type: event.type,
-                                repoName: event.repo?.name || "Nome de repositório indisponível",
-                                message: hasCommits ? event.payload.commits[0].message : "Sem mensagem"
-                            };
-                        });
-
-                        setRepos([...responseFromRepos.data]);
-                        setEvents([...filteredData]);
-                        console.log(filteredData)
-
-                        setCurrentPage(prevPage => prevPage + 1);
                     } catch (err) {
                         if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
                             const resetTime = err.response.headers['x-ratelimit-reset'];
                             const currentTime = Math.floor(Date.now() / 1000);
                             const timeUntilReset = resetTime - currentTime;
+
                             setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
+
                             openErrorModal();
                         } else {
                             setError("Erro ao buscar os repositórios!");
@@ -77,32 +90,50 @@ export function UserDetails() {
                         }
                     }
                 }
+            } else {
+                setError("Erro ao carregar dados desse usuário!");
+                openErrorModal();
             }
         }
 
-        fetchUserData(currentPage);
+        fetchUserData();
     }, [username]);
 
-    async function loadMoreRepos(page) {
+    async function loadMoreRepos() {
         try {
-            const response = await api.get(`/${username}/repos`, {
-                params: {
-                    per_page: 2,
-                    page: page
-                }
-            });
+            const reposResponse = await fetchRepos();
 
-            setRepos(prevRepos => [...prevRepos, ...response.data]);
-            setCurrentPage(page + 1);
+            setRepos(prevRepos => [...prevRepos, ...reposResponse]);
         } catch (err) {
             if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
                 const resetTime = err.response.headers['x-ratelimit-reset'];
                 const currentTime = Math.floor(Date.now() / 1000);
                 const timeUntilReset = resetTime - currentTime;
+
                 setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
                 openErrorModal();
             } else {
                 setError("Erro ao buscar os repositórios!");
+                openErrorModal();
+            }
+        }
+    }
+
+    async function loadMoreEvents() {
+        try {
+            const eventsResponse = await fetchEvents();
+
+            setEvents(prevEvents => [...prevEvents, ...eventsResponse]);
+        } catch (err) {
+            if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
+                const resetTime = err.response.headers['x-ratelimit-reset'];
+                const currentTime = Math.floor(Date.now() / 1000);
+                const timeUntilReset = resetTime - currentTime;
+
+                setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
+                openErrorModal();
+            } else {
+                setError("Erro ao buscar os eventos!");
                 openErrorModal();
             }
         }
@@ -149,7 +180,7 @@ export function UserDetails() {
                                 repos.map((repo, index) => {
                                     return (
                                         <li key={index}>
-                                            <a href={repo.html_url}>{repo.name}</a>
+                                            <a href={repo.html_url} target="_blank">{repo.name}</a>
                                             <span>{repo.language ?? 'Sem linguagem principal'}</span>
                                             <div className="repo-info">
                                                 <span>Forks: {repo.forks_count}</span>
@@ -164,18 +195,23 @@ export function UserDetails() {
                             )}
                         </ul>
 
-                        <button onClick={() => loadMoreRepos(currentPage)} className="load-more">Load More</button>
+                        <button onClick={() => loadMoreRepos()} className="load-more">Load More</button>
                     </div>
 
                     <div className="events">
                         <h3>Recent Events</h3>
                         <ul>
                             {events.length > 0 ? (
-                                events.map(event => {
+                                events.map((event, index) => {
                                     return(
-                                        <li>
-                                            <span>{event.message ?? 'sem commit'}</span> on <a href="#">{event.repoName}</a>
-                                            <span className="date">2 days ago</span>
+                                        <li key={index}> 
+                                            <span>"
+                                                {event.message ?? 'sem commit'}"
+                                            </span> 
+
+                                            on <a href={`https://github.com/${event.repoName}`} target="_blank">{event.repoName}</a>
+
+                                            <span className="date">{event.createdAt}</span>
                                         </li>
                                     )
                                 })
@@ -183,7 +219,7 @@ export function UserDetails() {
                                 <li>Nenhum evento encontrado</li>
                             )}
                         </ul>
-                        <button className="load-more">Load More</button>
+                        <button onClick={() => loadMoreEvents()} className="load-more">Load More</button>
                     </div>
                 </div>
             </div>

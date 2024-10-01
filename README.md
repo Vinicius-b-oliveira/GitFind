@@ -18,9 +18,9 @@ Você pode acessar a versão online do **gitFind** clicando [aqui](https://vinic
 
 Confira abaixo alguns visuais da aplicação:
 
-| ![Visual 1](./public/visual_1.gif) | ![Visual 2](./public/visual_2.gif) |
+| ![Visual 1](./public/preview_1.png) | ![Visual 2](./public/preview_2.png) |
 |:---:|:---:|
-| ![Visual 3](./public/visual_3.gif) | ![Visual 4](./public/visual_4.gif) |
+| ![Visual 3](./public/preview_3.png) | ![Visual 4](./public/preview_4.png) |
 
 ## 🌟 Melhorias Futuras 🌟
 

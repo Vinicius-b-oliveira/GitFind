@@ -10,6 +10,10 @@ export function App() {
             element: <Home />
         },
         {
+            path: "/GitFind",
+            element: <Home />
+        },
+        {
             path: "/user/:username",
             element: <UserDetails />
         },

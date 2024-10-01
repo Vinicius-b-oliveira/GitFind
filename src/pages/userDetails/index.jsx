@@ -4,11 +4,10 @@ import { api } from "../../lib/axios";
 import { ErrorModal } from "../../components/error-modal";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import './styled.css'
 import { ProfileHeader } from "../../components/profile-header";
 import { Repositories } from "../../components/repositories";
 import { Events } from "../../components/events";
-
+import './styled.css'
 
 export function UserDetails() {
     const location = useLocation();
@@ -74,6 +73,13 @@ export function UserDetails() {
         try {
             const reposResponse = await fetchRepos();
 
+            if(reposResponse == "") {
+                setError("O perfil não tem mais repositórios!");
+                openErrorModal();
+
+                return;
+            }
+
             setRepos(prevRepos => [...prevRepos, ...reposResponse]);
         } catch (err) {
             if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
@@ -91,6 +97,13 @@ export function UserDetails() {
     async function loadMoreEvents() {
         try {
             const eventsResponse = await fetchEvents();
+
+            if(eventsResponse == "") {
+                setError("O perfil não tem mais eventos!");
+                openErrorModal();
+
+                return;
+            }
 
             setEvents(prevEvents => [...prevEvents, ...eventsResponse]);
         } catch (err) {
@@ -165,7 +178,7 @@ export function UserDetails() {
                 </div>
             </div>
             
-            <Link to="/">
+            <Link to="/GitFind">
                 <button className="home-button">Back to Home</button>
             </Link>
 

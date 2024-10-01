@@ -3,8 +3,11 @@ import { useLocation, useParams } from "react-router-dom";
 import { api } from "../../lib/axios";
 import { ErrorModal } from "../../components/error-modal";
 import { Link } from "react-router-dom";
-import './styled.css'
 import { formatDistanceToNow } from "date-fns";
+import './styled.css'
+import { ProfileHeader } from "../../components/profile-header";
+import { Repositories } from "../../components/repositories";
+import { Events } from "../../components/events";
 
 
 export function UserDetails() {
@@ -28,6 +31,11 @@ export function UserDetails() {
     function closeErrorModal() {
         setIsErrorModalOpen(false);
     }
+
+    function CalcRemainingTime(resetTime) {
+        const currentTime = Math.floor(Date.now() / 1000);
+        return resetTime - currentTime;
+    } 
 
     async function fetchRepos() {
         const response = await api.get(`/${username}/repos`, {
@@ -62,43 +70,6 @@ export function UserDetails() {
         return filteredData;
     }
 
-    useEffect(() => {
-        async function fetchUserData() {
-            if (!userData.login && location.state?.userData) {
-                setUserData(location.state.userData);
-
-                if (repos.length === 0 || events.length === 0) {
-                    try {
-                        const reposResponse = await fetchRepos();
-                        const eventsResponse = await fetchEvents();
-
-                        setRepos([...reposResponse]);
-                        setEvents([...eventsResponse]);
-
-                    } catch (err) {
-                        if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
-                            const resetTime = err.response.headers['x-ratelimit-reset'];
-                            const currentTime = Math.floor(Date.now() / 1000);
-                            const timeUntilReset = resetTime - currentTime;
-
-                            setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
-
-                            openErrorModal();
-                        } else {
-                            setError("Erro ao buscar os repositórios!");
-                            openErrorModal();
-                        }
-                    }
-                }
-            } else {
-                setError("Erro ao carregar dados desse usuário!");
-                openErrorModal();
-            }
-        }
-
-        fetchUserData();
-    }, [username]);
-
     async function loadMoreRepos() {
         try {
             const reposResponse = await fetchRepos();
@@ -106,9 +77,7 @@ export function UserDetails() {
             setRepos(prevRepos => [...prevRepos, ...reposResponse]);
         } catch (err) {
             if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
-                const resetTime = err.response.headers['x-ratelimit-reset'];
-                const currentTime = Math.floor(Date.now() / 1000);
-                const timeUntilReset = resetTime - currentTime;
+                const timeUntilReset = CalcRemainingTime(err.response.headers['x-ratelimit-reset']);
 
                 setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
                 openErrorModal();
@@ -126,9 +95,7 @@ export function UserDetails() {
             setEvents(prevEvents => [...prevEvents, ...eventsResponse]);
         } catch (err) {
             if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
-                const resetTime = err.response.headers['x-ratelimit-reset'];
-                const currentTime = Math.floor(Date.now() / 1000);
-                const timeUntilReset = resetTime - currentTime;
+                const timeUntilReset = CalcRemainingTime(err.response.headers['x-ratelimit-reset']);
 
                 setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
                 openErrorModal();
@@ -139,93 +106,67 @@ export function UserDetails() {
         }
     }
 
+    useEffect(() => {
+        async function fetchUserData() {
+            if (!userData.login && location.state?.userData) {
+                setUserData(location.state.userData);
+
+                if (repos.length === 0 || events.length === 0) {
+                    try {
+                        const reposResponse = await fetchRepos();
+                        const eventsResponse = await fetchEvents();
+
+                        setRepos([...reposResponse]);
+                        setEvents([...eventsResponse]);
+
+                    } catch (err) {
+                        if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
+                            const timeUntilReset = CalcRemainingTime(err.response.headers['x-ratelimit-reset']);
+
+                            setError(`Limite de requisições atingido! Tente novamente em ${Math.ceil(timeUntilReset / 60)} minutos.`);
+                            openErrorModal();
+                        } else {
+                            setError("Erro ao buscar os repositórios!");
+                            openErrorModal();
+                        }
+                    }
+                }
+            } else {
+                setError("Erro ao carregar dados desse usuário!");
+                openErrorModal();
+            }
+        }
+
+        fetchUserData();
+    }, [username]);
+
     return (
         <div className="container">
             <div className="profile-container">
                 <div className="profile-card">
-                    <div className="profile-header">
-                        <img src={userData.avatar_url} alt="Profile Avatar" className="profile-picture" />
-                        <div className="profile-info">
-                            <h2>{userData.login}</h2>
-                            <p>{userData.bio ?? 'Esse usuário não possui bio!'}</p>
-                            <div className="followers-container">
-                                <div className="followers">
-                                    <strong>
-                                        {userData.followers > 1000 ? (
-                                            ((userData.followers / 1000).toFixed(0) + 'k').toString()
-                                        ) : (
-                                            userData.followers
-                                        )}
-                                    </strong>
-                                    <span>Followers</span>
-                                </div>
-                                <div className="following">
-                                    <strong>
-                                        {userData.following > 1000 ? (
-                                            ((userData.following / 1000).toFixed(0) + 'k').toString()
-                                        ) : (
-                                            userData.following
-                                        )}
-                                    </strong>
-                                    <span>Following</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="repositories">
-                        <h3>Repositories</h3>
-                        <ul>
-                            {repos.length > 0 ? (
-                                repos.map((repo, index) => {
-                                    return (
-                                        <li key={index}>
-                                            <a href={repo.html_url} target="_blank">{repo.name}</a>
-                                            <span>{repo.language ?? 'Sem linguagem principal'}</span>
-                                            <div className="repo-info">
-                                                <span>Forks: {repo.forks_count}</span>
-                                                <span>Stars: {repo.stargazers_count}</span>
-                                                <span>Watchers: {repo.watchers_count}</span>
-                                            </div>
-                                        </li>
-                                    );
-                                })
-                            ) : (
-                                <p className="error-message">Nenhum repositório encontrado</p>
-                            )}
-                        </ul>
+                    <ProfileHeader 
+                        avatarUrl={userData.avatar_url}
+                        bio={userData.bio}
+                        followers={userData.followers}
+                        following={userData.following}
+                        login={userData.login}
+                    />
 
-                        <button onClick={() => loadMoreRepos()} className="load-more">Load More</button>
-                    </div>
+                    <Repositories 
+                        repos={repos}
+                        loadMore={loadMoreRepos}
+                    />
 
-                    <div className="events">
-                        <h3>Recent Events</h3>
-                        <ul>
-                            {events.length > 0 ? (
-                                events.map((event, index) => {
-                                    return(
-                                        <li key={index}> 
-                                            <span>"
-                                                {event.message ?? 'sem commit'}"
-                                            </span> 
-
-                                            on <a href={`https://github.com/${event.repoName}`} target="_blank">{event.repoName}</a>
-
-                                            <span className="date">{event.createdAt}</span>
-                                        </li>
-                                    )
-                                })
-                            ) : (
-                                <li>Nenhum evento encontrado</li>
-                            )}
-                        </ul>
-                        <button onClick={() => loadMoreEvents()} className="load-more">Load More</button>
-                    </div>
+                    <Events 
+                        events={events}
+                        loadMore={loadMoreEvents}
+                    />
                 </div>
             </div>
             
             <Link to="/">
-                <button className="back-button">Back to Home</button>
+                <button className="home-button">Back to Home</button>
             </Link>
 
             {isErrorModalOpen && (

@@ -1,8 +1,8 @@
 import { UserRoundSearch } from 'lucide-react';
-import { UsernameInput } from '../../components/username-input';
 import { useState } from 'react';
-import { api } from '../../lib/axios';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../lib/axios';
+import { UsernameInput } from '../../components/username-input';
 import { ErrorModal } from '../../components/error-modal';
 import './styled.css';
 
@@ -12,17 +12,17 @@ export function Home() {
     const [username, setUsername] = useState("");
     const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const [error, setError] = useState("")
-
-    function handleUsername(value) {
-        setUsername(value);
-    }
-
+    
     function openErrorModal() {
         setIsErrorModalOpen(true);
     }
-
+    
     function closeErrorModal() {
         setIsErrorModalOpen(false);
+    }
+
+    function handleUsernameChange(value) {
+        setUsername(value);
     }
 
     async function handleSearch(event) {
@@ -34,14 +34,14 @@ export function Home() {
         }
     
         try {
-            const res = await api.get(`/${username}`);
-            const data = res.data;
+            const { data } = await api.get(`/${username}`);
     
             if (data.login) {
                 setError("");
-                navigate(`/user/${username}`, { state: { userData: res.data }});
+                navigate(`/user/${username}`, { state: { userData: data }});
             } else {
                 setError("Usuário inválido!");
+                openErrorModal();
             }
         } catch (err) {
             if (err.response && err.response.headers['x-ratelimit-remaining'] === '0') {
@@ -67,7 +67,7 @@ export function Home() {
             <form onSubmit={handleSearch} >
                 <UsernameInput 
                     value={username} 
-                    onValueChange={handleUsername} 
+                    onValueChange={handleUsernameChange} 
                     error={error} 
                 />
 

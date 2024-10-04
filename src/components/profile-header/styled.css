@@ -48,3 +48,15 @@
         }
     }
 }
+
+@media(max-width: 428px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+
+        & .followers-container {
+            justify-content: center;
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # 👉 gitFind 👈
 
-🚀 Bem-vindo ao **gitFind**! Meu nome é [Seu Nome] e este é um projeto que desenvolvi para praticar meus conhecimentos em programação. A aplicação permite que você busque usuários pelo nome no GitHub e obtenha detalhes como nome, foto de perfil, biografia, repositórios e eventos relacionados.
+🚀 Bem-vindo ao **gitFind**! Meu nome é Vinícius Bueno e este é um projeto que desenvolvi para praticar meus conhecimentos em programação. A aplicação permite que você busque usuários pelo nome no GitHub e obtenha detalhes como nome, foto de perfil, biografia, repositórios e eventos relacionados.
 
 ## 📜 Sobre o Projeto 📜
 
